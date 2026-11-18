@@ -3,9 +3,11 @@ import helmet from 'helmet';
 import cors from 'cors';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import mongoose from 'mongoose';
 import routes from './routes/index.js';
 import { errorHandler, notFoundHandler } from './middlewares/error.middleware.js';
 import { generalApiLimiter } from './middlewares/rateLimiter.middleware.js';
+import { connectDB } from './config/database.js';
 
 // Load environment variables
 dotenv.config();
@@ -58,6 +60,18 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Apply general rate limiter to API routes
 app.use('/api', generalApiLimiter);
+
+// Ensure MongoDB is connected on demand before servicing request
+app.use(async (req, res, next) => {
+  if (mongoose.connection.readyState !== 1 && mongoose.connection.readyState !== 2) {
+    try {
+      await connectDB();
+    } catch (err) {
+      console.error('[On-Demand DB Connect Error]:', err.message);
+    }
+  }
+  next();
+});
 
 // Root greeting
 app.get('/', (req, res) => {

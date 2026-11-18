@@ -18,15 +18,20 @@ const startServer = async () => {
     await connectDB();
   } catch (error) {
     console.error(`[Server Error] Database connection issue on startup: ${error.message}`);
-    // In production, do not immediately exit if DB takes a moment; retry gracefully
+    // In production, keep attempting reconnection until successful
     if (process.env.NODE_ENV === 'production') {
-      console.log('[Server] Will attempt database reconnection in 5 seconds...');
-      setTimeout(async () => {
+      console.log('[Server] Initializing continuous database connection monitor...');
+      const retryInterval = setInterval(async () => {
         try {
+          if (mongoose.connection.readyState === 1) {
+            clearInterval(retryInterval);
+            return;
+          }
           await connectDB();
-          console.log('[Server] Database successfully reconnected.');
+          console.log('[Server] Database successfully connected.');
+          clearInterval(retryInterval);
         } catch (retryErr) {
-          console.error('[Server Error] Reconnection failed:', retryErr.message);
+          console.error('[Server Retry Error]:', retryErr.message);
         }
       }, 5000);
     } else {

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import mongoose from 'mongoose';
 import authRoutes from './auth.routes.js';
 import noteRoutes from './note.routes.js';
 import postRoutes from './post.routes.js';
@@ -10,8 +11,13 @@ const router = Router();
 
 // Health check endpoint for deployment monitoring
 router.get('/health', (req, res) => {
+  const dbStates = ['disconnected', 'connected', 'connecting', 'disconnecting'];
+  const state = dbStates[mongoose.connection.readyState] || 'unknown';
   return sendSuccess(res, 200, 'Service is healthy and running', {
     status: 'healthy',
+    database: state,
+    databaseReady: mongoose.connection.readyState === 1,
+    hasMongoUri: !!process.env.MONGODB_URI,
     uptime: process.uptime(),
     timestamp: new Date().toISOString()
   });

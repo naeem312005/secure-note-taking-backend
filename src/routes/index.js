@@ -24,6 +24,21 @@ router.get('/health', (req, res) => {
   });
 });
 
+// Force reconnect endpoint
+router.get('/reconnect', async (req, res) => {
+  try {
+    const { connectDB } = await import('../config/database.js');
+    const conn = await connectDB();
+    return sendSuccess(res, 200, 'Database connected successfully', {
+      database: 'connected',
+      databaseReady: true,
+      host: conn.connection?.host
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // Mount modules
 router.use('/auth', authRoutes);
 router.use('/notes', noteRoutes);

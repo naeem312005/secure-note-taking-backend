@@ -13,7 +13,7 @@ export const connectDB = async (uri = process.env.MONGODB_URI) => {
   try {
     const conn = await mongoose.connect(uri || 'mongodb://127.0.0.1:27017/secure_notes_db', {
       autoIndex: process.env.NODE_ENV !== 'production',
-      serverSelectionTimeoutMS: 2000
+      serverSelectionTimeoutMS: process.env.NODE_ENV === 'production' ? 30000 : 3000
     });
 
     console.log(`[Database] MongoDB Connected: ${conn.connection.host} / ${conn.connection.name}`);

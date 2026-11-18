@@ -2,19 +2,36 @@ import app from './src/app.js';
 import { connectDB, disconnectDB } from './src/config/database.js';
 
 const PORT = process.env.PORT || 5000;
+const HOST = '0.0.0.0';
 
 let server;
 
 const startServer = async () => {
   try {
-    await connectDB();
-    server = app.listen(PORT, () => {
-      console.log(`[Server] CareGuide Secure Note-Taking API running on http://localhost:${PORT}`);
+    // Start HTTP server immediately so cloud platforms (Render, etc.) detect open port & pass healthchecks
+    server = app.listen(PORT, HOST, () => {
+      console.log(`[Server] CareGuide Secure Note-Taking API running on http://${HOST}:${PORT}`);
       console.log(`[Server] Environment: ${process.env.NODE_ENV || 'development'}`);
     });
+
+    // Connect to database
+    await connectDB();
   } catch (error) {
-    console.error(`[Server Error] Failed to start server: ${error.message}`);
-    process.exit(1);
+    console.error(`[Server Error] Database connection issue on startup: ${error.message}`);
+    // In production, do not immediately exit if DB takes a moment; retry gracefully
+    if (process.env.NODE_ENV === 'production') {
+      console.log('[Server] Will attempt database reconnection in 5 seconds...');
+      setTimeout(async () => {
+        try {
+          await connectDB();
+          console.log('[Server] Database successfully reconnected.');
+        } catch (retryErr) {
+          console.error('[Server Error] Reconnection failed:', retryErr.message);
+        }
+      }, 5000);
+    } else {
+      process.exit(1);
+    }
   }
 };
 

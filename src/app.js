@@ -18,6 +18,7 @@ app.use(helmet());
 // Cross-Origin Resource Sharing
 const allowedOrigins = [
   process.env.CLIENT_URL,
+  'https://secure-note-taking-frontend-delta.vercel.app',
   'http://localhost:5173',
   'http://localhost:3000',
   'http://localhost:5174'
@@ -32,7 +33,9 @@ app.use(
         process.env.NODE_ENV !== 'production' ||
         process.env.CLIENT_URL === '*' ||
         allowedOrigins.includes(origin) ||
-        /\.vercel\.app$/.test(origin)
+        origin.includes('.vercel.app') ||
+        origin.includes('localhost') ||
+        origin.includes('onrender.com')
       ) {
         return callback(null, true);
       }

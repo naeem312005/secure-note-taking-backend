@@ -2,21 +2,30 @@ import mongoose from 'mongoose';
 
 let memoryServerInstance = null;
 
+export const ATLAS_FALLBACK_URI = 'mongodb+srv://naimulhasan0179_db_user:6S9jb1DyUKxwqPss@cluster0.x8twxlz.mongodb.net/careguide_notes?retryWrites=true&w=majority';
+
 /**
  * Connect to MongoDB database
  */
 export const connectDB = async (uri = process.env.MONGODB_URI) => {
-  if (!uri && process.env.NODE_ENV === 'production') {
-    throw new Error('MONGODB_URI is not defined in environment variables');
-  }
+  const targetUri = uri || process.env.MONGODB_URI || ATLAS_FALLBACK_URI;
 
   try {
-    const conn = await mongoose.connect(uri || 'mongodb://127.0.0.1:27017/secure_notes_db', {
+    const conn = await mongoose.connect(targetUri, {
       autoIndex: process.env.NODE_ENV !== 'production',
-      serverSelectionTimeoutMS: process.env.NODE_ENV === 'production' ? 30000 : 3000
+      serverSelectionTimeoutMS: 30000
     });
 
     console.log(`[Database] MongoDB Connected: ${conn.connection.host} / ${conn.connection.name}`);
+
+    // Ensure database is populated with sample data/admin
+    try {
+      const { autoSeed } = await import('../scripts/autoSeed.js');
+      await autoSeed();
+    } catch (seedErr) {
+      console.warn('[AutoSeed Warning]:', seedErr.message);
+    }
+
     return conn;
   } catch (error) {
     if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {

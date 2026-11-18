@@ -6,6 +6,7 @@ import postRoutes from './post.routes.js';
 import adminRoutes from './admin.routes.js';
 import aggregationRoutes from './aggregation.routes.js';
 import { sendSuccess } from '../utils/apiResponse.js';
+import { ATLAS_FALLBACK_URI } from '../config/database.js';
 
 const router = Router();
 
@@ -17,7 +18,7 @@ router.get('/health', (req, res) => {
     status: 'healthy',
     database: state,
     databaseReady: mongoose.connection.readyState === 1,
-    hasMongoUri: !!process.env.MONGODB_URI,
+    hasMongoUri: !!(process.env.MONGODB_URI || ATLAS_FALLBACK_URI),
     uptime: process.uptime(),
     timestamp: new Date().toISOString()
   });

@@ -12,14 +12,14 @@ services:
       - key: PORT
         value: 10000
       - key: MONGODB_URI
-        sync: false
+        value: mongodb+srv://naimulhasan0179_db_user:6S9jb1DyUKxwqPss@cluster0.x8twxlz.mongodb.net/careguide_notes?retryWrites=true&w=majority
       - key: JWT_SECRET
-        generateValue: true
+        value: careguide_super_secret_jwt_key_2026
       - key: JWT_EXPIRES_IN
         value: 24h
       - key: CLIENT_URL
-        sync: false
+        value: https://secure-note-taking-frontend-delta.vercel.app
       - key: ADMIN_EMAIL
         value: admin@example.com
       - key: ADMIN_PASSWORD
-        sync: false
+        value: Admin@123456
